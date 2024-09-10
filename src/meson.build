@@ -1,10 +1,10 @@
-srcs_tinywl = [
-	'tinywl.c',
+srcs_wlrston = [
+	'main.c',
 	xdg_shell_protocol_h,
 	xdg_shell_protocol_c,
 ]
 
-deps_tinywl = [
+deps_wlrston = [
 	dep_wayland_server,
 	dep_wlroots,
 	dep_xkbcommon,
@@ -12,8 +12,8 @@ deps_tinywl = [
 ]
 
 executable(
-	'tinywl',
-	sources: srcs_tinywl,
+	'wlrston',
+	sources: srcs_wlrston,
 	include_directories: public_inc,
-	dependencies: deps_tinywl,
+	dependencies: deps_wlrston,
 )

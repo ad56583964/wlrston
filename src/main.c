@@ -25,6 +25,7 @@
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/log.h>
 #include <xkbcommon/xkbcommon.h>
+#include <signal.h>
 
 /* For brevity's sake, struct members are annotated where they are used. */
 enum tinywl_cursor_mode {
@@ -800,9 +801,29 @@ static void server_new_xdg_surface(struct wl_listener *listener, void *data) {
 		&view->request_fullscreen);
 }
 
+static int on_term_signal(int signal_number, void *data)
+{
+	struct wl_display *display = data;
+
+	wlr_log(WLR_ERROR, "caught signal %d", signal_number);
+	wl_display_terminate(display);
+
+	return 1;
+}
+
+static void
+sigint_helper(int sig)
+{
+	raise(SIGUSR2);
+}
+
 int main(int argc, char *argv[]) {
 	wlr_log_init(WLR_DEBUG, NULL);
 	char *startup_cmd = NULL;
+	struct wl_event_source *signals[2];
+	struct wl_event_loop *loop;
+	struct sigaction action;
+	int i;
 
 	int c;
 	while ((c = getopt(argc, argv, "s:h")) != -1) {
@@ -824,6 +845,19 @@ int main(int argc, char *argv[]) {
 	/* The Wayland display is managed by libwayland. It handles accepting
 	 * clients from the Unix socket, manging Wayland globals, and so on. */
 	server.wl_display = wl_display_create();
+	loop = wl_display_get_event_loop(server.wl_display);
+
+	signals[0] = wl_event_loop_add_signal(loop, SIGTERM, on_term_signal,
+					      server.wl_display);
+	signals[1] = wl_event_loop_add_signal(loop, SIGUSR2, on_term_signal,
+					      server.wl_display);
+	action.sa_handler = sigint_helper;
+	sigemptyset(&action.sa_mask);
+	action.sa_flags = 0;
+	sigaction(SIGINT, &action, NULL);
+	if (!signals[0] || !signals[1])
+		goto out_signals;
+
 	/* The backend is a wlroots feature which abstracts the underlying input and
 	 * output hardware. The autocreate option will choose the most suitable
 	 * backend based on the current environment, such as opening an X11 window
@@ -988,6 +1022,18 @@ int main(int argc, char *argv[]) {
 
 	/* Once wl_display_run returns, we shut down the server. */
 	wl_display_destroy_clients(server.wl_display);
+	wlr_scene_node_destroy(&server.scene->tree.node);
+	wlr_xcursor_manager_destroy(server.cursor_mgr);
+	wlr_cursor_destroy(server.cursor);
+	wlr_allocator_destroy(server.allocator);
+	wlr_renderer_destroy(server.renderer);
+	wlr_backend_destroy(server.backend);
 	wl_display_destroy(server.wl_display);
+
+out_signals:
+	for (i = 1; i >= 0; i--)
+		if (signals[i])
+			wl_event_source_remove(signals[i]);
+
 	return 0;
 }

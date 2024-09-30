@@ -10,7 +10,8 @@ project('wlrston',
 	license: 'MIT/Expat',
 )
 
-public_inc = include_directories('.')
+inc_public = include_directories('.')
+inc_wlrston = [ include_directories('include'), inc_public ]
 
 config_h = configuration_data()
 

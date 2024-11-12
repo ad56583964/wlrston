@@ -28,16 +28,18 @@ static void sigint_helper(int sig)
 	raise(SIGUSR2);
 }
 
-int main(int argc, char *argv[]) {
-	wlr_log_init(WLR_DEBUG, NULL);
+int main(int argc, char *argv[])
+{
 	char *startup_cmd = NULL;
 	struct wlrston_server server;
 	struct wl_event_source *signals[2];
 	struct wl_event_loop *loop;
 	struct sigaction action;
 	int i;
-
 	int c;
+
+	wlr_log_init(WLR_DEBUG, NULL);
+
 	while ((c = getopt(argc, argv, "s:h")) != -1) {
 		switch (c) {
 		case 's':
@@ -53,8 +55,6 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 
-	/* The Wayland display is managed by libwayland. It handles accepting
-	 * clients from the Unix socket, manging Wayland globals, and so on. */
 	server.wl_display = wl_display_create();
 	loop = wl_display_get_event_loop(server.wl_display);
 
@@ -86,18 +86,13 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	/* Set the WAYLAND_DISPLAY environment variable to our socket and run the
-	 * startup command if requested. */
 	setenv("WAYLAND_DISPLAY", socket, true);
 	if (startup_cmd) {
 		if (fork() == 0) {
 			execl("/bin/sh", "/bin/sh", "-c", startup_cmd, (void *)NULL);
 		}
 	}
-	/* Run the Wayland event loop. This does not return until you exit the
-	 * compositor. Starting the backend rigged up all of the necessary event
-	 * loop configuration to listen to libinput events, DRM events, generate
-	 * frame events at the refresh rate, and so on. */
+
 	wlr_log(WLR_INFO, "Running Wayland compositor on WAYLAND_DISPLAY=%s",
 			socket);
 	wl_display_run(server.wl_display);

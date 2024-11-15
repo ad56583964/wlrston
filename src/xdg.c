@@ -13,7 +13,7 @@ static void xdg_toplevel_map(struct wl_listener *listener, void *data)
 {
 	struct wlrston_view *view = wl_container_of(listener, view, map);
 
-	wl_list_insert(&view->server->views, &view->link);
+	wl_list_insert(&view->server->view_list, &view->link);
 	focus_view(view, view->xdg_toplevel->base->surface);
 }
 
@@ -46,8 +46,9 @@ static void
 begin_interactive(struct wlrston_view *view, enum wlrston_cursor_mode mode, uint32_t edges)
 {
 	struct wlrston_server *server = view->server;
+	struct wlrston_seat *seat = &server->seat;
 	struct wlr_surface *focused_surface =
-		server->seat->pointer_state.focused_surface;
+		seat->seat->pointer_state.focused_surface;
 
 	if (view->xdg_toplevel->base->surface != wlr_surface_get_root_surface(focused_surface)) {
 		return;
@@ -56,8 +57,8 @@ begin_interactive(struct wlrston_view *view, enum wlrston_cursor_mode mode, uint
 	server->cursor_mode = mode;
 
 	if (mode == WLRSTON_CURSOR_MOVE) {
-		server->grab_x = server->cursor->x - view->x;
-		server->grab_y = server->cursor->y - view->y;
+		server->grab_x = seat->cursor->x - view->x;
+		server->grab_y = seat->cursor->y - view->y;
 	} else {
 		struct wlr_box geo_box;
 		wlr_xdg_surface_get_geometry(view->xdg_toplevel->base, &geo_box);
@@ -66,8 +67,8 @@ begin_interactive(struct wlrston_view *view, enum wlrston_cursor_mode mode, uint
 			((edges & WLR_EDGE_RIGHT) ? geo_box.width : 0);
 		double border_y = (view->y + geo_box.y) +
 			((edges & WLR_EDGE_BOTTOM) ? geo_box.height : 0);
-		server->grab_x = server->cursor->x - border_x;
-		server->grab_y = server->cursor->y - border_y;
+		server->grab_x = seat->cursor->x - border_x;
+		server->grab_y = seat->cursor->y - border_y;
 
 		server->grab_geobox = geo_box;
 		server->grab_geobox.x += view->x;
@@ -106,7 +107,7 @@ static void xdg_toplevel_request_fullscreen(struct wl_listener *listener, void *
 	wlr_xdg_surface_schedule_configure(view->xdg_toplevel->base);
 }
 
-void server_new_xdg_surface(struct wl_listener *listener, void *data)
+void xdg_surface_new(struct wl_listener *listener, void *data)
 {
 	struct wlrston_server *server = wl_container_of(listener, server, new_xdg_surface);
 	struct wlr_xdg_surface *xdg_surface = data;

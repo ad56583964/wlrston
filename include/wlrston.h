@@ -15,6 +15,7 @@
 #include <wlr/types/wlr_data_device.h>
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_keyboard.h>
+#include <wlr/types/wlr_keyboard_group.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_pointer.h>
@@ -42,6 +43,7 @@ struct wlrston_input {
 struct wlrston_seat {
 	struct wlrston_server *server;
 	struct wlr_seat *seat;
+	struct wlr_keyboard_group *keyboard_group;
 
 	struct wlr_cursor *cursor;
 	struct wlr_xcursor_manager *xcursor_mgr;
@@ -126,5 +128,9 @@ void keyboard_modifiers_notify(struct wl_listener *listener, void *data);
 void keyboard_key_notify(struct wl_listener *listener, void *data);
 
 void keyboard_handle_destroy(struct wl_listener *listener, void *data);
+
+void keyboard_init(struct wlrston_seat *seat);
+
+void keyboard_finish(struct wlrston_seat *seat);
 
 #endif

@@ -60,8 +60,6 @@ new_keyboard(struct wlrston_seat *seat, struct wlr_input_device *device)
 {
 	struct wlr_keyboard *wlr_keyboard;
 	struct wlrston_keyboard *keyboard;
-	struct xkb_context *context;
-	struct xkb_keymap *keymap;
 
 	wlr_keyboard = wlr_keyboard_from_input_device(device);
 
@@ -69,13 +67,7 @@ new_keyboard(struct wlrston_seat *seat, struct wlr_input_device *device)
 	keyboard->base.device = device;
 	keyboard->wlr_keyboard = wlr_keyboard;
 
-	context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
-	keymap = xkb_keymap_new_from_names(context, NULL, XKB_KEYMAP_COMPILE_NO_FLAGS);
-
-	wlr_keyboard_set_keymap(wlr_keyboard, keymap);
-	xkb_keymap_unref(keymap);
-	xkb_context_unref(context);
-	wlr_keyboard_set_repeat_info(wlr_keyboard, 25, 600);
+	wlr_keyboard_set_keymap(wlr_keyboard, seat->keyboard_group->keyboard.keymap);
 
 	keyboard->modifiers.notify = keyboard_modifiers_notify;
 	wl_signal_add(&wlr_keyboard->events.modifiers, &keyboard->modifiers);
@@ -136,6 +128,7 @@ void seat_init(struct wlrston_server *server)
 	seat->cursor = wlr_cursor_create();
 	wlr_cursor_attach_output_layout(seat->cursor, server->output_layout);
 
+	keyboard_init(seat);
 	cursor_init(seat);
 
 }
@@ -150,5 +143,6 @@ void seat_finish(struct wlrston_server *server)
 		input_device_destroy(&input->destroy, NULL);
 	}
 
+	keyboard_finish(seat);
 	cursor_finish(seat);
 }

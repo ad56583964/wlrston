@@ -70,3 +70,33 @@ void keyboard_key_notify(struct wl_listener *listener, void *data)
 					     event->keycode, event->state);
 	}
 }
+
+void keyboard_init(struct wlrston_seat *seat)
+{
+	seat->keyboard_group = wlr_keyboard_group_create();
+	struct wlr_keyboard *kb = &seat->keyboard_group->keyboard;
+	struct xkb_context *context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+	struct xkb_keymap *keymap = xkb_keymap_new_from_names(context, NULL, XKB_KEYMAP_COMPILE_NO_FLAGS);
+
+	if (keymap) {
+		wlr_keyboard_set_keymap(kb, keymap);
+		xkb_keymap_unref(keymap);
+	} else {
+		wlr_log(WLR_ERROR, "Failed to create xkb keymap");
+	}
+	xkb_context_unref(context);
+	wlr_keyboard_set_repeat_info(kb, 25, 600);
+
+}
+
+void keyboard_finish(struct wlrston_seat *seat)
+{
+	/*
+	 * All keyboard listeners must be removed before this to avoid use after
+	 * free
+	 */
+	if (seat->keyboard_group) {
+		wlr_keyboard_group_destroy(seat->keyboard_group);
+		seat->keyboard_group = NULL;
+	}
+}

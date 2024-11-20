@@ -22,6 +22,7 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_subcompositor.h>
+#include <wlr/types/wlr_viewporter.h>
 #include <wlr/types/wlr_xcursor_manager.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/log.h>
@@ -104,6 +105,10 @@ struct wlrston_keyboard {
 void server_init(struct wlrston_server *server);
 
 void server_finish(struct wlrston_server *server);
+
+struct wlrston_server *server_create(struct wl_display *display);
+
+void server_destory(struct wlrston_server *server);
 
 void reset_cursor_mode(struct wlrston_server *server);
 

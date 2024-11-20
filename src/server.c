@@ -7,59 +7,107 @@
 
 #include <wlrston.h>
 
-void server_init(struct wlrston_server *server)
+struct wlrston_server *server_create(struct wl_display *display)
 {
+	struct wlrston_server *server;
+
+	server = calloc(1, sizeof *server);
+	if (!server)
+		return NULL;
+
+	server->wl_display = display;
+
 	server->backend = wlr_backend_autocreate(server->wl_display);
-	if (server->backend == NULL) {
-		wlr_log(WLR_ERROR, "failed to create wlr_backend");
-		exit(EXIT_FAILURE);
+	if (!server->backend) {
+		wlr_log(WLR_ERROR, "failed to create backend\n");
+		goto failed;
 	}
 
 	server->renderer = wlr_renderer_autocreate(server->backend);
-	if (server->renderer == NULL) {
-		wlr_log(WLR_ERROR, "failed to create wlr_renderer");
-		exit(EXIT_FAILURE);
+	if (!server->renderer) {
+		wlr_log(WLR_ERROR, "failed to create renderer\n");
+		goto failed_destroy_backend;
 	}
 
 	wlr_renderer_init_wl_display(server->renderer, server->wl_display);
 
 	server->allocator = wlr_allocator_autocreate(server->backend, server->renderer);
-	if (server->allocator == NULL) {
-		wlr_log(WLR_ERROR, "failed to create wlr_allocator");
-		exit(EXIT_FAILURE);
+	if (!server->allocator) {
+		wlr_log(WLR_ERROR, "failed to create allocator\n");
+		goto failed_destroy_renderer;
 	}
 
-	wlr_compositor_create(server->wl_display, server->renderer);
-	wlr_subcompositor_create(server->wl_display);
-	wlr_data_device_manager_create(server->wl_display);
+	server->scene = wlr_scene_create();
+	if (!server->scene) {
+		wlr_log(WLR_ERROR, "failed to create scene\n");
+		goto failed_destroy_allocator;
+	}
+
+	if (!wlr_compositor_create(server->wl_display, server->renderer)) {
+		wlr_log(WLR_ERROR, "failed to create the wlroots compositor\n");
+		goto failed_destroy_scene;
+	}
+
+	if (!wlr_subcompositor_create(server->wl_display)) {
+		wlr_log(WLR_ERROR, "failed to create the wlroots subcompositor\n");
+		goto failed_destroy_scene;
+	}
 
 	server->output_layout = wlr_output_layout_create();
+	if (!server->output_layout) {
+		wlr_log(WLR_ERROR, "failed to create output_layout\n");
+		goto failed_destroy_scene;
+	}
 
-	wl_list_init(&server->output_list);
-	server->new_output.notify = output_new;
-	wl_signal_add(&server->backend->events.new_output,
-		      &server->new_output);
+	if (!wlr_scene_attach_output_layout(server->scene, server->output_layout)) {
+		wlr_log(WLR_ERROR, "failed to attach output layout\n");
+		goto failed_destroy_output_layout;
+	}
 
-	server->scene = wlr_scene_create();
-	wlr_scene_attach_output_layout(server->scene, server->output_layout);
+	if (!wlr_data_device_manager_create(server->wl_display)) {
+		wlr_log(WLR_ERROR, "unable to create data device manager");
+		goto failed_destroy_output_layout;
+	}
 
-	wl_list_init(&server->view_list);
 	server->xdg_shell = wlr_xdg_shell_create(server->wl_display, 3);
 	server->new_xdg_surface.notify = xdg_surface_new;
 	wl_signal_add(&server->xdg_shell->events.new_surface,
 		      &server->new_xdg_surface);
 
 	seat_init(server);
+
+	server->new_output.notify = output_new;
+	wl_signal_add(&server->backend->events.new_output,
+		      &server->new_output);
+
+	wl_list_init(&server->output_list);
+	wl_list_init(&server->view_list);
+
+	return server;
+
+failed_destroy_output_layout:
+	wlr_output_layout_destroy(server->output_layout);
+failed_destroy_scene:
+	wlr_scene_node_destroy(&server->scene->tree.node);
+failed_destroy_allocator:
+	wlr_allocator_destroy(server->allocator);
+failed_destroy_renderer:
+	wlr_renderer_destroy(server->renderer);
+failed_destroy_backend:
+	wlr_backend_destroy(server->backend);
+failed:
+	free(server);
+	return NULL;
 }
 
-void server_finish(struct wlrston_server *server)
+void server_destory(struct wlrston_server *server)
 {
-	wl_display_destroy_clients(server->wl_display);
 	seat_finish(server);
-	wlr_scene_node_destroy(&server->scene->tree.node);
 	wlr_output_layout_destroy(server->output_layout);
+	wlr_scene_node_destroy(&server->scene->tree.node);
 	wlr_allocator_destroy(server->allocator);
 	wlr_renderer_destroy(server->renderer);
 	wlr_backend_destroy(server->backend);
-	wl_display_destroy(server->wl_display);
+
+	free(server);
 }

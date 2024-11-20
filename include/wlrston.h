@@ -101,9 +101,9 @@ struct wlrston_keyboard {
 	struct wl_listener key;
 };
 
-void server_init(struct wlrston_server *server);
+struct wlrston_server *server_create(struct wl_display *display);
 
-void server_finish(struct wlrston_server *server);
+void server_destory(struct wlrston_server *server);
 
 void reset_cursor_mode(struct wlrston_server *server);
 

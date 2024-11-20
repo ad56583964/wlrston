@@ -31,7 +31,8 @@ static void sigint_helper(int sig)
 int main(int argc, char *argv[])
 {
 	char *startup_cmd = NULL;
-	struct wlrston_server server;
+	struct wlrston_server *server;
+	struct wl_display *display;
 	struct wl_event_source *signals[2];
 	struct wl_event_loop *loop;
 	struct sigaction action;
@@ -55,13 +56,18 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-	server.wl_display = wl_display_create();
-	loop = wl_display_get_event_loop(server.wl_display);
+	display = wl_display_create();
+	if (display == NULL) {
+		wlr_log(WLR_ERROR,"fatal: failed to create display\n");
+		goto out_display;
+	}
 
+	loop = wl_display_get_event_loop(display);
 	signals[0] = wl_event_loop_add_signal(loop, SIGTERM, on_term_signal,
-					      server.wl_display);
+					      display);
 	signals[1] = wl_event_loop_add_signal(loop, SIGUSR2, on_term_signal,
-					      server.wl_display);
+					      display);
+
 	action.sa_handler = sigint_helper;
 	sigemptyset(&action.sa_mask);
 	action.sa_flags = 0;
@@ -69,20 +75,23 @@ int main(int argc, char *argv[])
 	if (!signals[0] || !signals[1])
 		goto out_signals;
 
-	server_init(&server);
+	server = server_create(display);
+	if (!server) {
+		goto out_signals;
+	}
 
 	/* Add a Unix socket to the Wayland display. */
-	const char *socket = wl_display_add_socket_auto(server.wl_display);
+	const char *socket = wl_display_add_socket_auto(display);
 	if (!socket) {
-		wlr_backend_destroy(server.backend);
+		wlr_backend_destroy(server->backend);
 		return 1;
 	}
 
 	/* Start the backend. This will enumerate outputs and inputs, become the DRM
 	 * master, etc */
-	if (!wlr_backend_start(server.backend)) {
-		wlr_backend_destroy(server.backend);
-		wl_display_destroy(server.wl_display);
+	if (!wlr_backend_start(server->backend)) {
+		wlr_backend_destroy(server->backend);
+		wl_display_destroy(display);
 		return 1;
 	}
 
@@ -95,14 +104,15 @@ int main(int argc, char *argv[])
 
 	wlr_log(WLR_INFO, "Running Wayland compositor on WAYLAND_DISPLAY=%s",
 			socket);
-	wl_display_run(server.wl_display);
+	wl_display_run(display);
 
-	server_finish(&server);
+	server_destory(server);
 
 out_signals:
 	for (i = 1; i >= 0; i--)
 		if (signals[i])
 			wl_event_source_remove(signals[i]);
 
+out_display:
 	return 0;
 }

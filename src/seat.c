@@ -130,7 +130,6 @@ void seat_init(struct wlrston_server *server)
 
 	keyboard_init(seat);
 	cursor_init(seat);
-
 }
 
 void seat_finish(struct wlrston_server *server)

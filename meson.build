@@ -10,6 +10,10 @@ project('wlrston',
 	license: 'MIT/Expat',
 )
 
+dir_prefix = get_option('prefix')
+dir_lib = join_paths(dir_prefix, get_option('libdir'))
+dir_shell = join_paths(dir_lib, 'wlrston')
+
 inc_public = include_directories('.')
 inc_wlrston = [ include_directories('include'), inc_public ]
 
@@ -36,6 +40,8 @@ add_global_arguments(global_args, language: 'c')
 
 config_h.set('_GNU_SOURCE', '1')
 config_h.set('_ALL_SOURCE', '1')
+
+config_h.set_quoted('SHELLDIR', dir_shell)
 
 dep_wlroots = dependency('wlroots', version: ['>= 0.16.2', '< 0.17.1'])
 dep_wayland_server = dependency('wayland-server', version: '>= 1.20.0')

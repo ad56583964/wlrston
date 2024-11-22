@@ -119,8 +119,6 @@ load_module_entrypoint(const char *name, const char *entrypoint, const char *mod
 	return init;
 }
 
-#define MODULEDIR "/usr/local/lib/x86_64-linux-gnu/wrlston"
-
 static int
 load_module(struct wlrston_server *server, const char *name, int *argc, char *argv[])
 {

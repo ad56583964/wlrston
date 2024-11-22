@@ -138,4 +138,6 @@ void keyboard_init(struct wlrston_seat *seat);
 
 void keyboard_finish(struct wlrston_seat *seat);
 
+int wlrston_shell_init(struct wlrston_server *server, int *argc, char *argv[]);
+
 #endif

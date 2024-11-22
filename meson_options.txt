@@ -1,0 +1,6 @@
+option(
+	'shell-desktop',
+	type: 'boolean',
+	value: true,
+	description: 'Wlrston shell UI: traditional desktop'
+)

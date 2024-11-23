@@ -114,7 +114,8 @@ static void new_input_notify(struct wl_listener *listener, void *data)
 		input = new_pointer(seat, device);
 		break;
 	default:
-		break;
+		wlr_log(WLR_INFO, "unsupported input device");
+		return;
 	}
 	seat_add_device(seat, input);
 }

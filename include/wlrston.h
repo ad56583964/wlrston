@@ -89,6 +89,8 @@ struct wlrston_server *server_create(struct wl_display *display);
 
 void server_destory(struct wlrston_server *server);
 
+bool server_start(struct wlrston_server *server);
+
 void reset_cursor_mode(struct wlrston_server *server);
 
 void output_new(struct wl_listener *listener, void *data);

@@ -121,3 +121,8 @@ void server_destory(struct wlrston_server *server)
 
 	free(server);
 }
+
+bool server_start(struct wlrston_server *server)
+{
+	return wlr_backend_start(server->backend);
+}

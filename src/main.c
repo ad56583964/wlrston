@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
 		goto out_signals;
 	}
 
-	if (!wlr_backend_start(server->backend))
+	if (!server_start(server))
 		goto out;
 
 	/* Add a Unix socket to the Wayland display. */

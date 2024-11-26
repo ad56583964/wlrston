@@ -6,6 +6,10 @@
 #include <stdlib.h>
 #include <wayland-util.h>
 
+#include <wlr/types/wlr_keyboard_group.h>
+#include <wlr/types/wlr_seat.h>
+#include <wlr/types/wlr_xdg_shell.h>
+
 #include <wlrston.h>
 #include <view.h>
 

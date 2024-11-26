@@ -3,6 +3,12 @@
  * Copyright (C) 2024 He Yong <hyyoxhk@163.com>
  */
 
+#include <wlr/types/wlr_cursor.h>
+#include <wlr/types/wlr_data_device.h>
+#include <wlr/types/wlr_scene.h>
+#include <wlr/types/wlr_xdg_shell.h>
+#include <wlr/types/wlr_xcursor_manager.h>
+
 #include <wlrston.h>
 #include <view.h>
 

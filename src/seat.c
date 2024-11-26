@@ -5,6 +5,11 @@
 
 #include <stdlib.h>
 
+#include <wlr/types/wlr_seat.h>
+#include <wlr/backend.h>
+#include <wlr/types/wlr_cursor.h>
+#include <wlr/types/wlr_keyboard_group.h>
+
 #include <wlrston.h>
 
 static void

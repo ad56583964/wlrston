@@ -5,6 +5,9 @@
 
 #include <assert.h>
 
+#include <wlr/types/wlr_xdg_shell.h>
+#include <wlr/types/wlr_scene.h>
+
 #include <wlrston.h>
 #include <view.h>
 

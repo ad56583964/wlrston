@@ -6,6 +6,10 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include <wlr/types/wlr_output.h>
+#include <wlr/types/wlr_output_layout.h>
+#include <wlr/types/wlr_scene.h>
+
 #include <wlrston.h>
 
 static void output_frame(struct wl_listener *listener, void *data)

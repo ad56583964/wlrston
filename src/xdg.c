@@ -6,6 +6,11 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <wlr/types/wlr_xdg_shell.h>
+#include <wlr/types/wlr_scene.h>
+#include <wlr/types/wlr_cursor.h>
+#include <wlr/util/edges.h>
+
 #include <wlrston.h>
 #include <view.h>
 

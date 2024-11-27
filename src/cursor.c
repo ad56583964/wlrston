@@ -68,7 +68,7 @@ static void request_set_selection_notify(struct wl_listener *listener, void *dat
 	wlr_seat_set_selection(seat->seat, event->source, event->serial);
 }
 
-static void process_cursor_move(struct wlrston_server *server, uint32_t time)
+static void process_cursor_move(struct wlrston_server *server)
 {
 	struct wlrston_seat *seat = &server->seat;
 	struct wlrston_view *view = server->grabbed_view;
@@ -78,7 +78,7 @@ static void process_cursor_move(struct wlrston_server *server, uint32_t time)
 	wlr_scene_node_set_position(&view->scene_tree->node, view->x, view->y);
 }
 
-static void process_cursor_resize(struct wlrston_server *server, uint32_t time)
+static void process_cursor_resize(struct wlrston_server *server)
 {
 	struct wlrston_seat *seat = &server->seat;
 	struct wlrston_view *view = server->grabbed_view;
@@ -133,10 +133,10 @@ static void process_cursor_motion(struct wlrston_seat *seat, uint32_t time)
 	double sx, sy;
 
 	if (server->cursor_mode == WLRSTON_CURSOR_MOVE) {
-		process_cursor_move(server, time);
+		process_cursor_move(server);
 		return;
 	} else if (server->cursor_mode == WLRSTON_CURSOR_RESIZE) {
-		process_cursor_resize(server, time);
+		process_cursor_resize(server);
 		return;
 	}
 
